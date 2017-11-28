@@ -1,29 +1,39 @@
-// https://github.com/TooTallNate/node-https-proxy-agent
-// npm install https-proxy-agent
 require('./src/logger')()
 var url = require('url');
 var WebSocket = require('ws');
-var HttpsProxyAgent = require('https-proxy-agent');
+var HttpsProxyAgent = require('https-proxy-agent'); // https://github.com/TooTallNate/node-https-proxy-agent
 
 // HTTP/HTTPS proxy to connect to
-var proxy = process.env.http_proxy || 'http://168.63.76.32:3128'; // none
-console.log('using proxy server %j', proxy);
+var proxy = process.env.http_proxy || undefined // none
+var socket = null
+console.log(proxy)
 
 // WebSocket endpoint for the proxy to connect to
 var endpoint = 'ws://localhost:3000/socket.io/?EIO=3&transport=websocket';
-var parsed = url.parse(endpoint);
-console.log('attempting to connect to WebSocket %j', endpoint);
 
-// create an instance of the `HttpsProxyAgent` class with the proxy server information
-var options = url.parse(proxy);
+if (proxy != undefined) {
+  console.log('using proxy server %j', proxy);
 
-// var agent = new HttpsProxyAgent(options);
+  var parsed = url.parse(endpoint);
+  console.log('attempting to connect to WebSocket %j', endpoint);
+
+  // create an instance of the `HttpsProxyAgent` class with the proxy server information
+  var options = url.parse(proxy);
+
+  var agent = new HttpsProxyAgent(options);
+  socket = new WebSocket(endpoint, { 
+    agent: agent,
+    perMessageDeflate: false
+  });
+} else {
+  // No proxy
+  socket = new WebSocket(endpoint, {
+    perMessageDeflate: false
+  });
+}
 
 // finally, initiate the WebSocket connection
-// var socket = new WebSocket(endpoint, { agent: agent });
-var socket = new WebSocket(endpoint, {
-  perMessageDeflate: false
-});
+// var socket = new WebSocket(endpoint, { agent: agent }); // TODO uncomment to use a proxy. Now, skipping
 var socketMessageInnerType = []
 socketMessageInnerType[0] = "CONNECT"
 socketMessageInnerType[1] = "DISCONNECT"
@@ -92,9 +102,6 @@ socket.on('message', function (data) {
         console.debug(`${packetType} - ${eventInnerType} > ${data.substr(2)}`)
     }
   }
-  // Some reading
-  // https://stackoverflow.com/questions/35673673/use-socket-io-with-servlet
-  // https://github.com/socketio/socket.io-protocol
 });
 
 function sendMsg(channel, data) {
