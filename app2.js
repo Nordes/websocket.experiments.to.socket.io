@@ -51,6 +51,10 @@ socket.on('open', function () {
   socket.send('42["testing", {"key1": "value1"}');
 });
 
+socket.on('time', function (data) {
+  console.log('seems good')
+})
+
 socket.on('error', function (data) {
   console.log('"err" event!');
 });
@@ -64,7 +68,7 @@ socket.on('message', function (data) {
     pingInterval = messageData.pingInterval
     pingTimeout = messageData.pingTimeout
     id = messageData.sid
-
+    startPingPongGame()
     // Handshake
     socket.emit('handshake', data);
     console.debug(JSON.stringify(messageData))
@@ -96,7 +100,8 @@ socket.on('message', function (data) {
         var eventName = eventData[0]
         var eventParam = eventData[1]
 
-        console.debug(`${packetType} - ${eventInnerType} > ${eventName} // ${eventParam}`)
+        console.debug(`${packetType} - ${eventInnerType} > "${eventName}" Data > ${eventParam}`)
+        socket.emit('eventName', eventParam)
         break;
       default:
         console.debug(`${packetType} - ${eventInnerType} > ${data.substr(2)}`)
@@ -104,15 +109,18 @@ socket.on('message', function (data) {
   }
 });
 
-function sendMsg(channel, data) {
+function send(channel, data) {
+  // DATA(4)+EVENT(2)
   socket.send(42 + JSON.stringify([channel, data]))
 }
 
 // Heartbeat
-setInterval(function(){ sendHeartbeat(); }, 5000);
-function sendHeartbeat() {
-  console.debug('Ping!')
-  socket.send("2"); // Send ping
-  sendMsg('testing', {a: "b"})
-}
+function startPingPongGame() {
+  setInterval(function(){ sendHeartbeat(); }, pingInterval);
 
+  function sendHeartbeat() {
+    console.debug('Ping!')
+    socket.send("2"); // Send ping
+    send('testing', {a: "b"})
+  }
+}
