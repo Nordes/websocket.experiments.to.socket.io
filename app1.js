@@ -16,7 +16,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => console.log('Client disconnected'));
 
   socket.on('testing', (data) => {
-    console.log('whatever... seems i receive a test ')
+    console.log(`Testing > ${data}`)
   })
 });
 
