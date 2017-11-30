@@ -66,7 +66,7 @@ var connect = (wsUri, opts) => {
 
   socket.on('message', function (data) {
     var packetType = parseInt(data.substr(0, 1))
-    // packetType = 0:handshake, 1:?, 2:Ping, 3:Pong, 4:Events
+    // packetType = 0: handshake, 1: ?, 2: Ping, 3: Pong, 4: Data
     switch (packetType) {
       case types.packetType.Handshake:
         handlers.handshake.handle(data, socket)
