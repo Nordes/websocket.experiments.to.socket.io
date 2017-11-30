@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint --color --fix . --ext .js || exit 0"
+    "lint": "eslint --color --fix . --ext .js || exit 0",
+    "start": "node app1",
+    "start2": "node app2"
   },
   "author": "",
   "license": "ISC",
