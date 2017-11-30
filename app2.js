@@ -1,5 +1,5 @@
 require('./src/logger')()
-var thinIoClient = require('./src/SuperThinSocket-IO-client')
+var thinIoClient = require('./src/thinWS-Socket-IO-client')
 // HTTP/HTTPS proxy to connect to
 var proxy = process.env.http_proxy || undefined // none
 var socket = null
