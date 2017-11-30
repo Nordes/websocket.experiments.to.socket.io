@@ -1,33 +1,31 @@
-var url = require('url');
-var WebSocket = require('ws');
-var HttpsProxyAgent = require('https-proxy-agent'); // https://github.com/TooTallNate/node-https-proxy-agent
+var url = require('url')
+var WebSocket = require('ws')
+var HttpsProxyAgent = require('https-proxy-agent') // https://github.com/TooTallNate/node-https-proxy-agent
 var types = require('./types')
 var handlers = require('./handlers')
 
 var autoReconnectInterval = 5 * 1000 // 5 seconds?
-var heartbeatInterval = null
 var origUrl = null
 var origOpt = null
+var socket = null
 
 function startSocket (wsUri, opt) {
   // WebSocket endpoint for the proxy to connect to
-  if (opt.proxy != undefined) {
-    console.log(`[SocketClient] using proxy server ${opt.proxy}`);
-
-    var parsed = url.parse(wsUri);
-    console.log(`[SocketClient] Attempting to connect to WebSocket ${wsUri}`);
+  if (opt.proxy !== undefined) {
+    console.log(`[SocketClient] using proxy server ${opt.proxy}`)
+    console.log(`[SocketClient] Attempting to connect to WebSocket ${wsUri}`)
 
     // create an instance of the `HttpsProxyAgent` class with the proxy server information
-    var options = url.parse(opt.proxy);
+    var options = url.parse(opt.proxy)
+    var agent = new HttpsProxyAgent(options)
 
-    var agent = new HttpsProxyAgent(options);
-    socket = new WebSocket(wsUri, { agent: agent, perMessageDeflate: false });
+    socket = new WebSocket(wsUri, { agent: agent, perMessageDeflate: false })
   } else {
     // No proxy
-    socket = new WebSocket(wsUri, { perMessageDeflate: false });
+    socket = new WebSocket(wsUri, { perMessageDeflate: false })
   }
 
-  return socket;
+  return socket
 }
 
 var connect = (wsUri, opts) => {
@@ -37,16 +35,16 @@ var connect = (wsUri, opts) => {
   origOpt = opts
   var opt = Object.assign({ proxy: undefined }, opts)
   var socket = startSocket(wsUri, opt)
-  
+
   socket.on('close', (e) => {
     switch (e) {
-      case 1000:	// CLOSE_NORMAL
-        console.log("WebSocket: closed");
-      break;
-      default:	// Abnormal closure
+      case 1000: // CLOSE_NORMAL
+        console.log('WebSocket: closed')
+        break
+      default: // Abnormal closure
         handlers.handshake.stopHeartbeat()
-        reconnect(e);
-      break;
+        reconnect(e)
+        break
     }
     // this.onclose(e);
   })
@@ -54,17 +52,17 @@ var connect = (wsUri, opts) => {
   socket.on('open', function () {
     // console.log('"Socket Open"');
     socket.emit('connect')
-  });
+  })
 
   socket.on('error', function (data) {
-    console.log('[SocketClient] "err" event!');
+    console.log('[SocketClient] "err" event!')
     console.log(data)
-    switch (data.code){
+    switch (data.code) {
       case 'ECONNREFUSED':
         reconnect(data)
-        break;
+        break
     }
-  });
+  })
 
   socket.on('message', function (data) {
     var packetType = parseInt(data.substr(0, 1))
@@ -72,20 +70,20 @@ var connect = (wsUri, opts) => {
     switch (packetType) {
       case types.packetType.Handshake:
         handlers.handshake.handle(data, socket)
-        break;
+        break
       case types.packetType.Pong:
         handlers.pong.handle()
-        break;
+        break
       case types.packetType.Data:
         handlers.data.handle(data, socket)
-        break;
+        break
       case types.packetType.Unknown:
       default:
         console.debug('An another type of event ;). Need debug.')
     }
-  });
+  })
 
-  function send(channel, data) {
+  function send (channel, data) {
     // DATA(4)+EVENT(2) <= Normally what we send
     socket.send(`${types.packetType.Data}${types.messageInnerType.Event}` + JSON.stringify([channel, data]))
   }
@@ -96,12 +94,12 @@ var connect = (wsUri, opts) => {
 
 // Idea from => https://github.com/websockets/ws/wiki/Websocket-client-implementation-for-auto-reconnect
 var reconnect = (e) => {
-	console.log(`WebSocketClient: retry in ${autoReconnectInterval}ms`,e);
-  socket.removeAllListeners();
-	setTimeout(function(){
-		console.log("WebSocketClient: reconnecting...");
-		connect(origUrl, origOpt)
-	}, autoReconnectInterval);
+  console.log(`WebSocketClient: retry in ${autoReconnectInterval}ms`, e)
+  socket.removeAllListeners()
+  setTimeout(function () {
+    console.log('WebSocketClient: reconnecting...')
+    connect(origUrl, origOpt)
+  }, autoReconnectInterval)
 }
 
-module.exports.connect = connect;
+module.exports.connect = connect
