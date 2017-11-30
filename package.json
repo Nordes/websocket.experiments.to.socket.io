@@ -1,20 +1,23 @@
 {
-  "name": "tmp",
+  "name": "thinws-socket-io-client",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Thin Socket-IO client that can receive/send basic messages and use a Proxy (Good behind corporate proxy)",
+  "main": "./src/thinWS-Socket-IO-client.js",
+  "repository": {
+    "url": "https://github.com/Nordes/websocket.experiments.to.socket.io.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --color --fix . --ext .js || exit 0",
     "start": "node app1",
     "start2": "node app2"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Nordès Ménard-Lamarre",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^4.0.0",
     "express": "^4.16.2",
-    "https-proxy-agent": "^2.1.0",
+    "https-proxy-agent": "^2.1.1",
     "socket.io": "^2.0.4",
     "winston": "^3.0.0-rc1"
   },
