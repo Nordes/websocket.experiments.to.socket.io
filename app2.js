@@ -1,8 +1,7 @@
 require('./src/logger')()
 var thinIoClient = require('./src/thinWS-Socket-IO-client')
-// HTTP/HTTPS proxy to connect to
-var proxy = process.env.http_proxy || undefined // none
-var socket = null
+
+var proxy = process.env.http_proxy || undefined // none if outside of corporate proxy (let's say)
 console.log(proxy)
 
 // WebSocket endpoint for the proxy to connect to
