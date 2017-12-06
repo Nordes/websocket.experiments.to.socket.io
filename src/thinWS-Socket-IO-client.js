@@ -7,6 +7,7 @@ var handlers = require('./handlers')
 var autoReconnectInterval = 5 * 1000 // 5 seconds?
 var origUrl = null
 var origOpt = null
+var origEvtListeners = {}
 var socket = null
 
 function startSocket (wsUri, opt) {
@@ -28,11 +29,12 @@ function startSocket (wsUri, opt) {
   return socket
 }
 
-var connect = (wsUri, opts) => {
+var connect = (wsUri, opts, eventlisteners) => {
   if (!wsUri) throw new Error('[SocketClient] When initializing the Socket we need an URI (i.e.: ws://www.sample.com/socket.io/?EIO=3&transport=websocket')
 
   origUrl = wsUri
   origOpt = opts
+  origEvtListeners = eventlisteners
   var opt = Object.assign({ proxy: undefined }, opts)
   var socket = startSocket(wsUri, opt)
 
@@ -83,6 +85,12 @@ var connect = (wsUri, opts) => {
     }
   })
 
+  // Bind the listeners
+  console.log(JSON.stringify(Object.keys(origEvtListeners)))
+  Object.keys(origEvtListeners).forEach((val, idx) => {
+    socket.on(val, (data) => origEvtListeners[val](data, socket))
+  })
+
   function send (channel, data) {
     // DATA(4)+EVENT(2) <= Normally what we send
     socket.send(`${types.packetType.Data}${types.messageInnerType.Event}` + JSON.stringify([channel, data]))
@@ -98,7 +106,7 @@ var reconnect = (e) => {
   socket.removeAllListeners()
   setTimeout(function () {
     console.log('WebSocketClient: reconnecting...')
-    connect(origUrl, origOpt)
+    connect(origUrl, origOpt, origEvtListeners)
   }, autoReconnectInterval)
 }
 

@@ -14,8 +14,8 @@ io.on('connection', (socket) => {
   console.log('Client connected')
   socket.on('disconnect', () => console.log('Client disconnected'))
 
-  socket.on('testing', (data) => {
-    console.log(`Testing > ${JSON.stringify(data)}`)
+  socket.on('received', (data) => {
+    console.log(`received > ${JSON.stringify(data)}`)
   })
 })
 
